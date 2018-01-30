@@ -47,30 +47,28 @@ class Update extends Command
         /**
          * @var $message \Telegram\Bot\Objects\Update
          */
+        $groups = collect($update)->groupBy('message.chat.id');
 
-        $messages = collect($update)->groupBy('chat')->last();
+        foreach ($groups as $group) {
+            $message = $group->last();
+            $messageId = $message->getMessage()->getMessageId();
+            $messageText = $message->getMessage()->getText();
 
-        logger($messages);
+            $chatId = $message->getMessage()->getChat()->getId();
 
-//        $message = collect($update)->last();
-//
-//        $messageId = $message->getMessage()->getMessageId();
-//        $messageText = $message->getMessage()->getText();
-//
-//        $chatId = $message->getMessage()->getChat()->getId();
-//
-//        if (Redis::get('message' . ':' . $chatId) != $messageId) {
-//            Redis::set('message' . ':' . $chatId, $messageId);
-//
-//            if ($messageText == '/start') {
-//                Telegram::sendMessage([
-//                    'chat_id' => $chatId,
-//                    'text' => 'Приветствую тебя мой повелитель']);
-//            } else {
-//                Telegram::sendMessage([
-//                    'chat_id' => $chatId,
-//                    'text' => rand(0, 1000)]);
-//            }
-//        }
+            if (Redis::get('message' . ':' . $chatId) != $messageId) {
+                Redis::set('message' . ':' . $chatId, $messageId);
+
+                if ($messageText == '/start') {
+                    Telegram::sendMessage([
+                        'chat_id' => $chatId,
+                        'text' => 'Приветствую тебя мой повелитель']);
+                } else {
+                    Telegram::sendMessage([
+                        'chat_id' => $chatId,
+                        'text' => rand(0, 1000)]);
+                }
+            }
+        }
     }
 }
